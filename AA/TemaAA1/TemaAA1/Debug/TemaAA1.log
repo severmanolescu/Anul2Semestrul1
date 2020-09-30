@@ -1,0 +1,3 @@
+﻿  Problema.c
+C:\Users\Manolescu\source\repos\TemaAA1\TemaAA1\Problema.c(20,13): warning C4013: 'fabs' undefined; assuming extern returning int
+  TemaAA1.vcxproj -> C:\Users\Manolescu\source\repos\TemaAA1\Debug\TemaAA1.exe
