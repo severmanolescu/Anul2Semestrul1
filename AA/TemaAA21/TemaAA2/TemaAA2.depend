@@ -1,0 +1,6 @@
+# depslib dependency file v1.0
+1602753179 source:c:\users\sever\source\repos\temaaa2\temaaa2\arbore.c
+	<stdio.h>
+	<stdlib.h>
+	<stdbool.h>
+
