@@ -1,0 +1,4 @@
+﻿  Byte.c
+C:\Users\Manolescu\source\repos\CodeWars\CodeWars\Byte.c(14,20): warning C4244: '=': conversion from 'double' to 'unsigned int', possible loss of data
+C:\Users\Manolescu\source\repos\CodeWars\CodeWars\Byte.c(19,19): warning C4018: '<': signed/unsigned mismatch
+  CodeWars.vcxproj -> C:\Users\Manolescu\source\repos\CodeWars\Debug\CodeWars.exe

@@ -1,2 +1,4 @@
 ﻿  Arbore.c
+C:\Users\Manolescu\source\repos\TemaAA21\TemaAA2\Arbore.c(307,28): warning C4013: 'malloc' undefined; assuming extern returning int
+C:\Users\Manolescu\source\repos\TemaAA21\TemaAA2\Arbore.c(320,7): warning C4013: 'free' undefined; assuming extern returning int
   TemaAA2.vcxproj -> C:\Users\Manolescu\source\repos\TemaAA21\Debug\TemaAA2.exe

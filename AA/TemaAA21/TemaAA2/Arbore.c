@@ -6,12 +6,11 @@
 typedef struct arbore {
 	unsigned int parinte;
     long cheie;
-	bool radacina; // Variabila folosita pentru indentidicarea radacii
 }arbore;
 
 unsigned long contor = 1;
-unsigned long numere;
-unsigned long au1; // numar folost pe post de auxiliar pentru suprimare
+unsigned long numere; // Variabila folosita pentur salvarea nuamrului de noduri din arbore
+unsigned long au1; // Variabila folosita pe post de auxiliar pentru suprimare
 
 FILE* out; // Fisierul unde o sa se execute scrierea pentru functiile recursive
 
@@ -73,10 +72,15 @@ unsigned long FrateDreapta(arbore arb[], unsigned long n)
 
 unsigned long Cheie(arbore arb[], unsigned long n)
 {
+	if (n > numere)
+	{
+		return 0;
+	}
+
 	return arb[n].cheie; // Returneaza cheia nodului dat ca parametru
 }
 
-long Radacina(arbore arb[])
+unsigned long Radacina(arbore arb[])
 {
 	unsigned long index = 0;
 	unsigned short nod = 0; // Variabila in care se vor stoca numarul nodurilor sunt "radacini"
@@ -85,7 +89,7 @@ long Radacina(arbore arb[])
 
 	for (index = 1; index < numere; index++)
 	{
-		if (arb[index].radacina == true)
+		if (arb[index].parinte == 0)
 		{
 			nod++;
 		}
@@ -94,7 +98,7 @@ long Radacina(arbore arb[])
 	if (nod == 1) // Daca exista doar o radacina returneaza cheia acesteia
 		return arb[1].cheie;
 
-	return -1; // Daca cumva exista mai multe multe noduri "radacina" sau daca nu exista inca o radacina retuneaza valoare 0
+	return 0; // Daca cumva exista mai multe multe noduri "radacina" sau daca nu exista inca o radacina retuneaza valoare 0
 }
 
 void initializeaza(arbore arb[])
@@ -105,13 +109,12 @@ void initializeaza(arbore arb[])
 	{
 		arb[index].cheie = 0;
 		arb[index].parinte = 0;
-		arb[index].radacina = false;
 
 		afisate[index] = 0;
 	}
 }
 
-void insereaza(arbore arb[], unsigned long cheie, int tata)
+void insereaza(arbore arb[], unsigned long cheie, unsigned int tata)
 {
 	unsigned long index = 0;
 
@@ -121,11 +124,6 @@ void insereaza(arbore arb[], unsigned long cheie, int tata)
 		{
 			break;
 		}
-	}
-
-	if (tata == -1) // Daca valoare data prin parametrul tata este -1, se considera ca nodule ste radacina
-	{
-		arb[contor].radacina = true; 
 	}
 
 	arb[contor].cheie = cheie;  // Inserarea nodului la finalul arborelui 
@@ -194,7 +192,7 @@ void preordine(arbore arb[], unsigned long n) // Functie recursiva pentru afisar
 			if (aux2)
 				preordine(arb, aux2);
 
-			aux1 = PrimulFiu(arb, aux1);
+			aux1 = PrimulFiu(arb, aux1); // Initializam variabila aux1 cu primul fiu al nodului
 			aux2 = FrateDreapta(arb, Cheie(arb, aux2));
 		}
 
@@ -250,6 +248,16 @@ void suprimare(arbore arb[], unsigned long n)
 	}
 }
 
+void reinitializare() // Functie ajutatoare pentru reitializarea vectorului afisate folosit pentru parcurgeri
+{
+	unsigned long index = 0;
+
+	for (index = 0; index < numere; index++) // Reinitializam vectorul afisate
+	{
+		afisate[index] = 0;
+	}
+}
+
 int main()
 {
 	unsigned long auxiliar = 0; // Nod auxiliar folosti atat pentru citirea din fisier atat si pentru citirea valoarilor pentur meniul interactiv
@@ -258,13 +266,8 @@ int main()
 
 	unsigned short s = 1; // Variabila care va oferii fiecarui nod cate 5 fii
 
-	int alegere = 1; // Variabila folosita pentru meniul interactiv
 	int rad = 0; // Variabila folosita pentru afisarea radacinii arborelui
 
-	double procent = 0;  // Variabila folosita pentru afisare procentului la care a ajuns citirea 
-	double procent1 = 1; // Vabila folosita drept auxiliar pentru procent, deoarece nu dorim sa afiseze foarte des la ce procent a ajuns
-
-	char c = '%';    // Variabila folosita pentru afisarea procentuli
 	char fisier[20]; // Variabila folosita pentru stocarea numelui fisierului de unde o sa se execute citirea
 
 	bool radacina = false; // Variabila folosita pentru a identifica daca radacina a fost initializata sau nu
@@ -285,13 +288,14 @@ int main()
 	if ((input = fopen(fisier, "rb")) == NULL) // Deschiderea fisierului binar pentru citire
 	{
 		perror("fopen"); // Afisare un mesja de eroare in cazul in care nu s-a putut efectua deschiderea
-		return -1;
+		return -1; // Inchidem functia main, respectiv programul
 	}
 
 	if ((out = fopen("DATA.OUT", "w")) == NULL) // Deschiderea fisierului pentru scriere
 	{
 		perror("fopen"); // Afisare un mesja de eroare in cazul in care nu s-a putut efectua deschiderea
-		exit(-1);
+		fclose(input); // Inchidem fisierul deschis pentru scirere
+		return -1; // Inchidem functia main, respectiv programul
 	}
 
 	fseek(input, 0, SEEK_END);
@@ -300,16 +304,23 @@ int main()
 
 	numere++;
 
-	if ((arb = (arbore*)malloc(sizeof(struct arbore) * (numere + 2))) == NULL)
+	if ((arb = (arbore*)malloc(sizeof(struct arbore) * (numere + 2))) == NULL) // Alocare memorie pentru arbore
 	{
-		perror("malloc");
-		return -1;
+		perror("malloc"); // Afisare mesaj de eroare in caz de esec
+
+		fclose(input); // Inchidem fisierele deschise
+		fclose(out);
+		return -1; // Inchidem functia main, respectiv programul
 	}
 
-	if ((afisate = (unsigned short*)malloc(sizeof(unsigned short) * (numere + 2))) == NULL)
+	if ((afisate = (unsigned short*)malloc(sizeof(unsigned short) * (numere + 2))) == NULL) // Alocare memorie pentru vectorul ajutator
 	{
-		perror("malloc");
-		return -1;
+		perror("malloc"); // Afisare mesaj de eroare in caz de esec
+
+		free(arb); // Eliberam memoria alocata arborelui
+		fclose(input); // Inchidem fisierele deschise
+		fclose(out);
+		return -1; // Inchidem functia main, respectiv programul
 	}
 
 	initializeaza(arb); // Apelare functiei de afisare
@@ -318,33 +329,23 @@ int main()
 	{
 		fread(&auxiliar, sizeof(unsigned long), 1, input); // Citirea numarului din fisierul binar
 
-		alegere = index + 1;
-
-		procent = (float)(alegere) / (numere * 1.0) * 100.0; // Indentificarea procentului
-
-		if (procent != procent1)
-		{
-			printf("Citire si initializare: %.2f %c \n", procent, c);
-
-			procent1 = procent;
-		}
-
 		if (radacina == false) // Daca radacina nu a fost inca initializata
 		{
-			arb[1].cheie = auxiliar;
+			arb[1].cheie = auxiliar; // Initializarea radacinii
 			arb[1].parinte = 0;
-			arb[1].radacina = true;
-			contor++;
+
+			contor++; // Incrementam contorul
+
 			radacina = true;
 		}
 
 		else if (s < 5) // Daca nodul salvat in variabila tata are mai putin de 5 fii
 		{
-			insereaza(arb, auxiliar, arb[tata].cheie);
+			insereaza(arb, auxiliar, arb[tata].cheie); // Apelam functia de inserare pentru nodul citit cu tatal respectiv
 			s++; // Incrementam numarul de fii ai nodului tata
 		}
 
-		else // Daca tata are 5 fii
+		else // Daca nodul tata are 5 fii
 		{
 			insereaza(arb, auxiliar, arb[tata].cheie);
 			s = 1;
@@ -352,204 +353,16 @@ int main()
 		}
 	}
 
-	printf("\nCitirea si initializarea a avut loc cu succes! \n\n");
+	preordine(arb, 1); // Apelarea functiei pentru parcurgerea in preordine
+	fprintf(out, "\n");
+	reinitializare(); // Reinitialzam vectorul pentru urmatorea afisare
 
-	while (alegere)
-	{
-		printf("1. Scrierea in fisier in inordine.\n");
-		printf("2. Scrierea in fisier in preordine.\n");
-		printf("3. Scrierea in fisier in postordine.\n");
-		printf("4. Afisarea tatalui unui nod.\n");
-		printf("5. Afisarea primului fiu al unui nod.\n");
-		printf("6. Afisarea frate de dreapta al unui nod.\n");
-		printf("7. Afisarea cheii unui nod.\n");
-		printf("8. Afisarea nodului care este radacina.\n");
-		printf("9. Suprimarea unui nod.\n");
-		printf("0. Iesire.\n");
+	inordine(arb, 1); // Apelarea functiei pentru parcurgerea in inordine
+	fprintf(out, "\n");
+	reinitializare(); // Reinitialzam vectorul pentru urmatorea afisare
 
-		printf("Alegerea dumneavoastra este: ");
-		if (scanf("%d", &alegere) != 1)
-		{
-			perror("scanf");
-		}
-
-		switch (alegere)
-		{
-		case 1: printf("\nScriere in fisierul DATA.OUT parcurgerea in inordine...");
-
-			inordine(arb, 1);
-
-			printf("\nScriere in fisierul DATA.OUT parcurgerea in inordine executata cu succes\n\n");
-
-			fprintf(out, "\n");
-			break;
-
-		case 2: printf("\nScriere in fisierul DATA.OUT parcurgerea in preordine...");
-
-			preordine(arb, 1);
-
-			printf("\nScriere in fisierul DATA.OUT parcurgerea in preordine executata cu succes\n\n");
-
-			fprintf(out, "\n");
-			break;
-
-		case 3: printf("\nScriere in fisierul DATA.OUT parcurgerea in postordine...");
-
-			postordine(arb, 1);
-
-			printf("\nScriere in fisierul DATA.OUT parcurgerea in postordine executata cu succes\n\n");
-
-			fprintf(out, "\n");
-			break;
-
-		case 4: printf("\nDati cheia nodul: ");
-
-			if (scanf("%lu", &auxiliar) != 1)
-			{
-				perror("scanf");
-			}
-
-			if (auxiliar > numere)
-			{
-				printf("Nodul nu apartine arborelui!\n\n");
-			}
-
-			index = Tata(arb, Cheie(arb, auxiliar));
-			if (index > 0)
-			{
-				printf("Tatal nodului cu cheia %lu este nodul %lu cu cheia %lu.\n\n", auxiliar, index, Cheie(arb, index));
-			}
-
-			else if (index == -1)
-			{
-				printf("Nodul a fost sters din arbore!\n\n");
-			}
-
-			else
-			{
-				printf("Nodul este radacina sau arborele nu a fost initializat!\n\n");
-			}
-			break;
-
-		case 5:printf("\nDati nodul: ");
-
-			if (scanf("%lu", &auxiliar) != 1)
-			{
-				perror("scanf");
-			}
-
-			if (auxiliar > numere)
-			{
-				printf("Nodul nu apartine arborelui!\n\n");
-			}
-
-			index = PrimulFiu(arb, auxiliar);
-
-			if (index > 0)
-			{
-				printf("Primul fiu al nodului %lu este  nodul %lu cu cheia %lu.\n\n", auxiliar, index, Cheie(arb, index));
-			}
-
-			else if (index == -1)
-			{
-				printf("Nodul a fost sters din arbore!\n\n");
-			}
-
-			else
-			{
-				printf("Nodul este o frunza!\n\n");
-			}
-			break;
-
-		case 6: printf("\nDati nodul: ");
-
-				if (scanf("%lu", &auxiliar) != 1)
-				{
-					perror("scanf");
-				}
-
-				if (auxiliar > numere)
-				{
-					printf("Nodul nu apartine arborelui!\n\n");
-				}
-
-				index = FrateDreapta(arb, Cheie(arb, auxiliar));
-
-				if (index > 0)
-				{
-					printf("Fratele de drapta al nodului %lu este  nodul %lu cu cheia %lu.\n\n", auxiliar, index, Cheie(arb, index));
-				}
-
-				else if (index == -1)
-				{
-					printf("Nodul a fost sters din arbore!\n\n");
-				}
-
-				else
-				{
-					printf("Nodul nu are un frate de dreapta!\n\n");
-				}
-				break;
-
-		case 7: printf("\nDati nodul: ");
-				if (scanf("%lu", &auxiliar) != 1)
-				{
-					perror("scanf");
-				}
-	
-				if (auxiliar > numere)
-				{
-					printf("Nodul nu apartine arborelui!\n\n");
-				}
-
-				else if (Cheie(arb, auxiliar) == -1)
-				{
-					printf("Nodul a fost sters din arbore!\n\n");
-				}
-
-				else
-				{
-					printf("Cheia nodului %lu este %lu.\n\n", auxiliar, Cheie(arb, auxiliar));
-				}
-
-				break;
-				
-		case 8: if ((rad = Radacina(arb)) == -1)
-				{
-					printf("\nArborele nu a fost initializat!\n\n");
-				}
-				
-			    else
-				{
-					printf("\nRdacina arborelul este: %d\n\n", rad);
-				}
-			  break;
-
-		case 9: printf("\nDati nodul: ");
-				if (scanf("%lu", &au1) != 1)
-				{
-					perror("scanf");
-				}
-				
-				if (au1 > numere)
-				{
-					printf("Nodul nu apartine arborelui!\n\n");
-				}
-				
-				else
-				{
-					suprimare(arb, au1);
-				}
-				break;
-
-		case 0: break;
-
-		default: printf("\nAlegere gresita!\n\n");
-		}
-
-		for (index = 0; index < numere; index++) // Reinitializam vectorul afisate
-			afisate[index] = 0;
-	}
+    postordine(arb, 1); // Apelarea functiei pentru parcurgerea in postordine
+	fprintf(out, "\n");
 
 	free(arb); // Eliberam memoria ocupata de arbore
 	free(afisate); // Eliberam memoria ocupata de vectorul pentru valorile afisate
